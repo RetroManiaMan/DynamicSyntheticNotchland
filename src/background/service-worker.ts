@@ -139,7 +139,22 @@ chrome.downloads.onCreated.addListener((item) => {
   setLatest(item)
 })
 
+/** A change event can wake a suspended worker with nothing tracked; pick the download back up. */
+async function adopt(id: number) {
+  const [item] = await chrome.downloads.search({ id })
+  if (item?.state === 'in_progress') {
+    setLatest(item)
+  }
+}
+
 chrome.downloads.onChanged.addListener((delta) => {
+  if (!latest) {
+    adopt(delta.id).catch((error) => {
+      console.warn('DSN could not re-adopt download', delta.id, error)
+    })
+    return
+  }
+
   applyDelta(delta)
 })
 

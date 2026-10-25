@@ -18,6 +18,8 @@ Run these inside the compose service — the sandbox host has no Bun/Node:
 - `docker compose -f docker-compose.base44.yml exec -T web sh -c "cd /app && bun run build"` — `tsc -b` plus the extension bundle
 - `docker compose -f docker-compose.base44.yml exec -T web sh -c "cd /app && bun run lint"` — oxlint
 
+- `docker compose -f docker-compose.base44.yml exec -T web sh -c "cd /app && bun run test"` — vitest + jsdom unit tests (config in `vitest.config.ts`)
+
 `vite dev` (the preview path) does not typecheck, so run the build before shipping.
 The four remaining lint warnings are pre-existing ones in the legacy v0.1 files
 (`content.js`, `notchtab.js`).
@@ -39,10 +41,14 @@ imports types only and keeps its protocol strings local.
   fall back to a simulated source, and the expanded notch shows a “Design
   preview” row whose chips walk through every state — simulated battery levels
   and a simulated download, including an interruption.
-- Battery and download-indicator preferences (alerts, warning level, battery saver)
-  live in DSN's settings menu, not inside the notch. `useBatteryManager` in
-  `src/content/hooks/useBatteryManager.ts` stays the single source of truth those
-  controls bind to; the notch only displays status and alerts.
+- Battery preferences (alerts, warning level, battery saver) currently render in
+  the notch's battery panel (`src/content/components/BatteryPanel.tsx`);
+  `useBatteryManager` is the single source of truth for them, so the controls can
+  move to a settings menu without touching the alert logic.
+- `navigator.getBattery()` only exists in a document context, so battery readings
+  live in the content script (`useBatteryStatus`), not the service worker. The
+  worker owns downloads only, including re-adopting a download when a change
+  event wakes it from suspension.
 - Dwell timings (2 min after a download finishes, 30 s after the file is opened)
   are constants at the top of `src/content/hooks/useDownloads.ts`.
 

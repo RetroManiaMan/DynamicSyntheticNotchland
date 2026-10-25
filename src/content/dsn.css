@@ -28,6 +28,7 @@
   .dsn-ring-value,
   .dsn-battery,
   .dsn-switch-thumb,
+  .dsn-alert,
   .dsn-tab,
   .dsn-button,
   .dsn-icon-button {
@@ -701,6 +702,18 @@
 
 /* ---------- Alerts ---------- */
 
+@keyframes dsn-alert-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .dsn-alert {
   display: flex;
   align-items: flex-start;
@@ -709,6 +722,7 @@
   border: 1px solid var(--dsn-border);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.03);
+  animation: dsn-alert-in 0.26s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .dsn-alert-icon {

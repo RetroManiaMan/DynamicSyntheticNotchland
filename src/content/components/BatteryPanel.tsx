@@ -1,5 +1,5 @@
 import { formatDuration } from '../lib/format'
-import type { BatteryManager } from '../hooks/useBatteryManager'
+import { LOW_THRESHOLD_OPTIONS, type BatteryManager } from '../hooks/useBatteryManager'
 import type { BatteryReading, BatteryStatus } from '../hooks/useBatteryStatus'
 import { PreviewChip, PreviewRow } from './PreviewRow'
 import { WarningIcon } from './icons'
@@ -43,7 +43,7 @@ function stateLabel(battery: BatteryReading): string {
 }
 
 export function BatteryPanel({ battery, manager }: BatteryPanelProps) {
-  const { alert } = manager
+  const { settings, alert } = manager
   const percent = Math.round(battery.level * 100)
 
   return (
@@ -57,7 +57,7 @@ export function BatteryPanel({ battery, manager }: BatteryPanelProps) {
       </div>
 
       {alert ? (
-        <div className={`dsn-alert dsn-alert--${alert.tone}`} role="status">
+        <div key={alert.key} className={`dsn-alert dsn-alert--${alert.tone}`} role="status">
           <span className="dsn-alert-icon">
             <WarningIcon size={14} />
           </span>
@@ -75,6 +75,53 @@ export function BatteryPanel({ battery, manager }: BatteryPanelProps) {
           </button>
         </div>
       ) : null}
+
+      <div className="dsn-manager">
+        <div className="dsn-row">
+          <span className="dsn-row-title">Battery alerts</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={settings.alertsEnabled}
+            aria-label="Battery alerts"
+            className={`dsn-switch ${settings.alertsEnabled ? 'is-on' : ''}`}
+            onClick={() => manager.setAlertsEnabled(!settings.alertsEnabled)}
+          >
+            <span className="dsn-switch-thumb" />
+          </button>
+        </div>
+
+        <div className="dsn-row">
+          <span className="dsn-row-title">Warn me at</span>
+          <span className="dsn-segmented" role="group" aria-label="Low battery warning level">
+            {LOW_THRESHOLD_OPTIONS.map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={settings.lowThreshold === option}
+                className={`dsn-segment ${settings.lowThreshold === option ? 'is-active' : ''}`}
+                onClick={() => manager.setLowThreshold(option)}
+              >
+                {option}%
+              </button>
+            ))}
+          </span>
+        </div>
+
+        <div className="dsn-row">
+          <span className="dsn-row-title">Battery saver</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={settings.saverMode}
+            aria-label="Battery saver"
+            className={`dsn-switch ${settings.saverMode ? 'is-on' : ''}`}
+            onClick={() => manager.setSaverMode(!settings.saverMode)}
+          >
+            <span className="dsn-switch-thumb" />
+          </button>
+        </div>
+      </div>
 
       {battery.simulated ? (
         <PreviewRow>

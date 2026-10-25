@@ -5,6 +5,7 @@ import { NotchCollapsed } from './components/NotchCollapsed'
 import { NotchExpanded } from './components/NotchExpanded'
 import { NotchShell } from './components/NotchShell'
 import type { NotchTab } from './components/NotchTabs'
+import { resolveNotchTab, type NotchTabChoice } from './lib/notchTab'
 import { useBatteryManager } from './hooks/useBatteryManager'
 import { useBatteryStatus } from './hooks/useBatteryStatus'
 import { useDownloads } from './hooks/useDownloads'
@@ -16,7 +17,7 @@ export function DSNApp() {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [searchValue, setSearchValue] = useState('')
-  const [tabChoice, setTabChoice] = useState<{ downloadId: number | null; tab: NotchTab }>({
+  const [tabChoice, setTabChoice] = useState<NotchTabChoice>({
     downloadId: null,
     tab: 'battery',
   })
@@ -32,14 +33,7 @@ export function DSNApp() {
   const alert = manager.alert
   const isBusy = downloadId !== null || alert !== null
 
-  // A download opens its own notch tab and the notch falls back to battery once
-  // it closes; a tab the user picked by hand sticks for that download.
-  const activeTab: NotchTab =
-    downloadId === null
-      ? 'battery'
-      : tabChoice.downloadId === downloadId
-        ? tabChoice.tab
-        : 'downloads'
+  const activeTab = resolveNotchTab(downloadId, tabChoice)
 
   const handleTabChange = (tab: NotchTab) => {
     setTabChoice({ downloadId, tab })
