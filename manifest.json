@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Dynamic Synthetic Notchland",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "A compact browser-native interface environment.",
-  "permissions": [],
+  "permissions": ["downloads"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"

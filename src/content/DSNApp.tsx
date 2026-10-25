@@ -4,14 +4,46 @@ import { Clock } from './components/Clock'
 import { NotchCollapsed } from './components/NotchCollapsed'
 import { NotchExpanded } from './components/NotchExpanded'
 import { NotchShell } from './components/NotchShell'
+import type { NotchTab } from './components/NotchTabs'
+import { useBatteryManager } from './hooks/useBatteryManager'
+import { useBatteryStatus } from './hooks/useBatteryStatus'
+import { useDownloads } from './hooks/useDownloads'
+
+const IDLE_WIDTH = '250px'
+const STATUS_WIDTH = 'min(360px, calc(100vw - 32px))'
 
 export function DSNApp() {
   const [isExpanded, setIsExpanded] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [searchValue, setSearchValue] = useState('')
+  const [tabChoice, setTabChoice] = useState<{ downloadId: number | null; tab: NotchTab }>({
+    downloadId: null,
+    tab: 'battery',
+  })
   const shellRef = useRef<HTMLDivElement | null>(null)
   const expandedRef = useRef(false)
   const { formattedTime } = Clock()
+
+  const battery = useBatteryStatus()
+  const manager = useBatteryManager(battery)
+  const downloads = useDownloads()
+
+  const downloadId = downloads.item?.id ?? null
+  const alert = manager.alert
+  const isBusy = downloadId !== null || alert !== null
+
+  // A download opens its own notch tab and the notch falls back to battery once
+  // it closes; a tab the user picked by hand sticks for that download.
+  const activeTab: NotchTab =
+    downloadId === null
+      ? 'battery'
+      : tabChoice.downloadId === downloadId
+        ? tabChoice.tab
+        : 'downloads'
+
+  const handleTabChange = (tab: NotchTab) => {
+    setTabChoice({ downloadId, tab })
+  }
 
   useEffect(() => {
     expandedRef.current = isExpanded || isHovered
@@ -43,10 +75,10 @@ export function DSNApp() {
         }
       } else if (event.key === '/' && expandedRef.current) {
         event.preventDefault()
-        shellRef.current?.querySelector('.dsn-search-input')?.focus()
+        shellRef.current?.querySelector<HTMLElement>('.dsn-search-input')?.focus()
       } else if (['1', '2', '3'].includes(event.key) && expandedRef.current) {
         event.preventDefault()
-        const buttons = shellRef.current?.querySelectorAll('.dsn-action')
+        const buttons = shellRef.current?.querySelectorAll<HTMLElement>('.dsn-action')
         buttons?.[Number(event.key) - 1]?.click()
       }
     }
@@ -85,12 +117,17 @@ export function DSNApp() {
     <NotchShell
       ref={shellRef}
       isExpanded={isExpanded || isHovered}
+      isSaver={manager.settings.saverMode}
+      collapsedWidth={isBusy ? STATUS_WIDTH : IDLE_WIDTH}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       collapsedContent={
         <NotchCollapsed
           time={formattedTime}
           isExpanded={isExpanded || isHovered}
+          battery={battery}
+          batteryAlert={alert}
+          downloads={downloads}
           onToggle={() => setIsExpanded((value) => !value)}
         />
       }
@@ -100,6 +137,11 @@ export function DSNApp() {
           onSearchChange={setSearchValue}
           onSearchSubmit={handleSearchSubmit}
           onCollapse={() => setIsExpanded(false)}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          battery={battery}
+          manager={manager}
+          downloads={downloads}
         />
       }
     />

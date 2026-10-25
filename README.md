@@ -4,7 +4,20 @@ Dynamic Synthetic Notchland (DSN) is a Chrome extension that replaces the defaul
 
 ## 🟡 Version
 
-DSN v0.2.1
+DSN v0.2.3
+
+## 🔋 What’s new in v0.2.3
+
+- **Battery monitor** — the notch carries a live battery chip (level, charging state and time left), and the expanded notch has a Battery tab with the full readout
+- **Battery manager** — alert toggle, low-battery warning level (10% / 20% / 30%), and a battery saver mode that strips glow and blur from the notch
+- **Battery alerts** — low, critical and fully-charged notices show up in the notch itself, with the chip turning amber, red or lime
+- **Download status** — while a file or image is downloading, the notch shows the file name with a progress bar along its bottom edge
+- **Downloads tab** — a notch tab appears with the download (progress, pause/resume, cancel); when the file is done it offers *open* and *download again*, then closes itself; an interrupted download reads “Unable to finish download — Try again”
+- Requires the `downloads` permission so DSN can watch browser downloads
+
+## 🧪 Coming next (v0.2.4)
+
+- A second progress bar for reading: a setting to see how much of a long article is left while you read
 
 ## 🌟 What’s new in v0.2.1
 
