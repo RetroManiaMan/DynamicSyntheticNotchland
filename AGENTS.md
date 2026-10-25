@@ -39,6 +39,10 @@ imports types only and keeps its protocol strings local.
   fall back to a simulated source, and the expanded notch shows a “Design
   preview” row whose chips walk through every state — simulated battery levels
   and a simulated download, including an interruption.
+- Battery and download-indicator preferences (alerts, warning level, battery saver)
+  live in DSN's settings menu, not inside the notch. `useBatteryManager` in
+  `src/content/hooks/useBatteryManager.ts` stays the single source of truth those
+  controls bind to; the notch only displays status and alerts.
 - Dwell timings (2 min after a download finishes, 30 s after the file is opened)
   are constants at the top of `src/content/hooks/useDownloads.ts`.
 
