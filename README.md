@@ -1,71 +1,102 @@
-# DSN! ❇️
+# DSN: Dynamic Synthetic Notchland
 
-Dynamic Synthetic Notchland (DSN) is a Chrome extension that replaces the default new tab with a compact, green-and-black, Base44-inspired dashboard experience.
+A Chromium extension that puts a compact, dark notch on every page and a calm new-tab page behind it.
+The notch is the doorway; Notchland is the environment.
 
-## 🟡 Version
+**Version 0.2.2, "Personal"**
 
-DSN v0.2.1
+## Install (unpacked)
 
-## 🌟 What’s new in v0.2.1
+```bash
+npm install
+npm run build          # type-checks, then builds to dist/
+```
 
-- Refined new-tab experience with a stronger DSN visual identity
-- Expanded search field for a more prominent browser-native layout
-- Smooth expandable sidebar interaction with reduced motion stiffness
-- Quick Access bookmarks for frequently used websites
-- Clean green/black styling inspired by the Base44 aesthetic
-- DSN branding integrated into the sidebar state
-- Removed the sidebar search action and edge clock from the final layout
-- Updated extension packaging to remain compatible with Chrome Manifest V3 requirements
+Open `chrome://extensions`, turn on **Developer mode**, choose **Load unpacked**, and select `dist/`.
 
-## ✅ Features
+## What's in 0.2.2
 
-- Custom new-tab page override
-- Sidebar navigation with expand/collapse behavior
-- Search-first layout with a wider focus area
-- Fast Quick Access bookmarks
-- Minimal browser-native experience with DSN theming
-- Lightweight extension structure with no inline runtime script required
+- **Dynamic media notch.** The notch has three media tiers: a compact pill (artwork, title, equaliser), a hover mini-player, and the full Media view. It appears when a page plays media, stays when media is paused, and goes away when the source tab closes or navigates.
+- **Dynamic media accent.** The accent is derived from the artwork (hue histogram, normalised, contrast-checked against the DSN surface) and fades in and out. It only tints media UI; the rest of DSN stays green. Falls back to green when there is no artwork, and to a neutral for greyscale artwork.
+- **Real controls only.** Play/pause, seek, mute/volume and repeat-this-track act on the page's media element. Previous/next call the handlers the page registered with the Media Session API, and are disabled when the page registered none. Shuffle is not offered: the browser has no API for it.
+- **Lyrics (opt-in).** Synced lyrics from [LRCLIB](https://lrclib.net). Off by default. When on, the track title, artist and length are sent to LRCLIB, and only after you open lyrics for a track.
+- **Placement.** Top, bottom, left, right, or free (drag anywhere; arrow keys work on the grip button).
+- **True black (AMOLED).** Pure-black surfaces and no accent wash.
+- **Focus Mode.** Blocks navigation to sites you list (and their subdomains) with a calm page. Strict mode removes "Continue anyway". `/block` and `/unblock` work from the notch. This is a self-control tool, not a lock.
+- **Favorite / Save to library.** Stored locally. Nothing is synced.
+- **Settings.** One options page, opened from the extension icon or the NotchTab gear: General, Appearance, Notch, Search, Media, Focus, Shortcuts, Privacy, Account.
+- **Feedback prompt.** Occasional and dismissible: never before the third NotchTab visit, never within 30 days of a dismissal. Submissions are saved locally only.
 
-## 🗄️ Installation
+## Architecture
 
-1. Open Chrome or Edge.
-2. Go to chrome://extensions (or edge://extensions).
-3. Enable Developer Mode.
-4. Click Load unpacked.
-5. Select this project folder.
-6. Open a new tab to see the DSN interface.
+```
+src/
+  shared/      settings, hosts, colour extraction, LRC parsing, library, message protocol (pure, unit-tested)
+  background/  service worker: media hub, artwork + accent, lyrics, Focus Mode rules
+  content/     the notch (vanilla TS, one bundle) + media reporter + MAIN-world Media Session bridge
+  settings/    Settings page (React)
+  blocked/     Focus Mode blocked page
+public/        NotchTab + feedback prompt (legacy hand-written JS, not yet ported) and icons
+scripts/       build.mjs
+tests/         unit/ (node:test) and e2e/ (Playwright driving a real Chromium)
+```
 
-## 🖼️ Pictures
-<img width="1470" height="956" alt="Screenshot 2026-09-24 at 10 32 19 AM" src="https://github.com/user-attachments/assets/b384a90d-7516-4cd4-acfd-8b19908b80f4" />
-<img width="1429" height="798" alt="Screenshot 2026-09-22 at 5 27 59 PM" src="https://github.com/user-attachments/assets/e8967441-9e72-4d15-9f2f-be0367de67dc" />
-<img width="1429" height="798" alt="Screenshot 2026-09-22 at 5 28 11 PM" src="https://github.com/user-attachments/assets/e6e6b401-176b-4548-b7f2-d7ae8d99fbc1" />
-<img width="1469" height="834" alt="Screenshot 2026-09-23 at 9 06 50 PM" src="https://github.com/user-attachments/assets/6a73c559-19dc-44ef-95d0-35bf86ad3b8f" />
-<img width="1470" height="833" alt="Screenshot 2026-09-23 at 9 06 57 PM" src="https://github.com/user-attachments/assets/9b794a28-1c9a-4286-ba3a-b5998463f167" />
-<img width="1470" height="834" alt="Screenshot 2026-09-24 at 10 05 39 AM" src="https://github.com/user-attachments/assets/4e9ae686-a56c-4159-96fe-04b36832fd11" />
-<img width="1470" height="956" alt="Screenshot 2026-09-24 at 10 31 45 AM" src="https://github.com/user-attachments/assets/50c9b6e2-9532-4e43-8c35-a3d64d2c0452" />
-<img width="1470" height="956" alt="Screenshot 2026-09-24 at 10 31 59 AM" src="https://github.com/user-attachments/assets/661d1ce5-8b99-41f4-96b5-d9a67971ec27" />
+Media flow: a page-side reporter (every frame) sends small snapshots on events, not on a timer. The service worker
+validates them, fetches artwork once, extracts the accent, and mirrors the sessions into `chrome.storage.session`.
+Every tab's notch watches that storage key, so a terminated service worker loses nothing and no tab holds a
+connection that could drop. Progress is extrapolated locally from the last sample.
 
+The content script, the MAIN-world bridge and the service worker are each built as a single-file bundle (content
+scripts cannot import shared chunks). The React pages are built separately. See `scripts/build.mjs`.
 
-## 🏛️ Project structure
+## Permissions
 
-- manifest.json — Chrome extension manifest
-- notchtab.html — new-tab entry page
-- notchtab.css — DSN styling
-- notchtab.js — runtime behavior for the page
-- asset source files — additional UI/build source under the assets folder
+| Permission | Why |
+|---|---|
+| `storage` | Settings, library, and the media hub (session storage). |
+| `declarativeNetRequestWithHostAccess` | Focus Mode redirects. |
+| Host access to all sites | Show the notch on pages and notice media. DSN reads media title, artist, artwork and playback state only. |
 
-## 🪪 Licensing
+`blocked.html` and `blocked-assets/*` are web-accessible so a link on another site can be redirected to them. A side
+effect is that sites can detect that DSN is installed.
 
-- Source code: MIT License — see LICENSE
-- Design assets, documentation, screenshots, and other creative files: CC BY-SA 4.0 — see LICENSE-ASSETS
+## Privacy
 
-## 📝 Notes
+No analytics. Nothing is uploaded unless you turn on lyrics. Artwork is fetched once by the service worker from the
+site that is playing the media. The notch's shadow root is closed in production builds, so page scripts cannot read
+what you type.
 
-This repository contains both code and design assets. The code is permissively licensed for reuse and modification, while the non-code visual/design content is shared under Creative Commons Attribution-ShareAlike 4.0.
+## Develop and test
 
-## ⚡️ Status
+```bash
+npm run typecheck
+npm run test:unit
+npm run build:test     # builds dist-test/ with an open shadow root and a local lyrics stub
+npm run test:e2e       # needs a Chromium that still supports --load-extension (set DSN_CHROMIUM)
+```
 
-The extension is currently aligned with the DSN v0.2.1 design direction and is ready for local installation and testing in Chrome-based browsers.
-##
-# For the best experience, KryptoBoltz suggests enabling vertical tabs (if supported) in your browser.
-**Made with ❤️‍🔥 from KryptoBoltz, Base44, Chat, with VSCode!**
+Branded Chrome 137+ ignores `--load-extension`. Use Chromium, Chrome for Testing, or an ungoogled-chromium build for
+the end-to-end tests. `node tests/e2e/run.mjs --prod` smoke-tests the production build.
+
+## Known limitations
+
+- Players that use a detached `new Audio()` (never added to the page) are not detected: their events never reach the
+  document. Supporting them would need instrumentation in the page's own JS world.
+- Media inside a shadow DOM is not detected.
+- Prev/next work only where the site registers Media Session handlers.
+- Lyrics depend on LRCLIB having the track; matching uses the title and artist the page reports.
+- NotchTab and the feedback prompt are still the hand-written 0.2.1 scripts, with small fixes. Feedback is saved
+  locally; creating GitHub issues needs a backend that holds the token.
+- Accounts are not implemented; Settings says so.
+
+## Credits
+
+DSN's three-tier media notch, placement options and Focus Mode were inspired by **Glance**, a cross-browser
+Dynamic Island extension created by **Akshar Srijan**. Thank you for the ideas. The implementation, code and
+visual design here are DSN's own.
+
+- Portfolio: [akshars07.github.io](https://akshars07.github.io/)
+- Support his work: [ko-fi.com/aksharsrijan](https://ko-fi.com/aksharsrijan)
+- LinkedIn: [Akshar Srijan](https://www.linkedin.com/in/akshar-srijan-863339250/)
+
+See `LICENSE` and `LICENSE-ASSETS`.

@@ -1,0 +1,69 @@
+{
+  "manifest_version": 3,
+  "name": "Dynamic Synthetic Notchland",
+  "version": "0.2.2",
+  "description": "A compact browser-native interface environment.",
+  "minimum_chrome_version": "120",
+  "icons": {
+    "16": "icons/icons16.png",
+    "32": "icons/icons32.png",
+    "48": "icons/icons48.png",
+    "128": "icons/icons128.png"
+  },
+  "permissions": [
+    "storage",
+    "declarativeNetRequestWithHostAccess"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "settings.html",
+  "chrome_url_overrides": {
+    "newtab": "notchtab.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content-main.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true,
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "action": {
+    "default_title": "Dynamic Synthetic Notchland",
+    "default_icon": {
+      "16": "icons/icons16.png",
+      "24": "icons/icons24.png",
+      "32": "icons/icons32.png"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "blocked.html",
+        "blocked-assets/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}
