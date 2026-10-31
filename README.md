@@ -176,3 +176,6 @@ DSN's three-tier media notch, placement options, and Focus Mode were inspired by
 
 **DSN — Dynamic Synthetic Notchland**  
 *Precision in the interface. Freedom in the experience.*
+
+## KryptoBoltz recommends enabling the vertical tab settings within your browser for the best experience!
+**Made with ❤️‍🔥 by KryptoBoltz, ChatGPT, Claude, Base44, and the support of DSN's users!**
